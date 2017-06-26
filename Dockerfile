@@ -23,7 +23,7 @@ RUN \
       -e 's:daemonize yes:daemonize no:' \
       -e 's:# maxmemory \(.*\)$:maxmemory 2gb:' \
       -e 's:# maxmemory-policy \(.*\)$:maxmemory-policy allkeys-lru:' \
-      /etc/redis/redis.conf
+      /etc/redis/redis.conf \
 
   && mkdir -p /var/lib/redis && mkdir -p /var/log/redis && mkdir -p /etc/service/redis \
   && echo "#!/bin/sh" > /etc/service/redis/run \
