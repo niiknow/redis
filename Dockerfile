@@ -1,9 +1,37 @@
-FROM redis:3.2.9-alpine
+FROM hyperknot/baseimage16:1.0.2
 
 MAINTAINER friends@niiknow.org
 
+ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 \
+    TERM=xterm container=docker DEBIAN_FRONTEND=noninteractive 
+
 RUN \
-  && sed -i 's/^\(maxmemory-policy .*\)$/# \1\\nmaxmemory-policy allkeys-lru/' /usr/local/etc/redis/redis.conf \
-  && sed -i 's/^\(maxmemory .*\)$/# \1\\nmaxmemory 3gb/' /usr/local/etc/redis/redis.conf \
+  cd /tmp \
+
+# add our user and group first to make sure their IDs get assigned consistently
+  && groupadd -r redis && useradd -r -g redis redis \
+
+# update
+  && apt-get update && apt-get upgrade -y --no-install-recommends --no-install-suggests \
+  && apt-get install -y --no-install-recommends --no-install-suggests redis-server \
+  && update-rc.d -f redis-server disable \
+
+  && echo "\n\n* soft nofile 100000\n* hard nofile 100000\n" >> /etc/security/limits.conf \
+
+  && sed -i 's/^\(bind .*\)$/# \1/' /etc/redis/redis.conf \
+  && sed -i 's/^\(daemonize .*\)$/# \1/' /etc/redis/redis.conf \
+  && sed -i 's/^\(maxmemory-policy .*\)$/# \1\\nmaxmemory-policy allkeys-lru/' /etc/redis/redis.conf \
+  && sed -i 's/^\(maxmemory .*\)$/# \1\\nmaxmemory 3gb/' /etc/redis/redis.conf \
+
+  && mkdir -p /var/lib/redis && mkdir -p /var/log/redis && mkdir -p /etc/service/redis \
+  && echo "#!/bin/sh" > /etc/service/redis/run \
+  && echo "set -e" >> /etc/service/redis/run \
+  && echo "exec /sbin/setuser redis /usr/bin/redis-server /etc/redis/redis.conf" >> /etc/service/redis/run \
+  && chmod +x /etc/service/redis/run \
+
+  && apt-get autoremove -y gcc make libc6-dev && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+
   && echo "/sbin/shutdown -h 5 'System will reboot in 5 minutes'" > /etc/cron.daily/reboot-me \
   && chmod +x /etc/cron.daily/reboot-me
+
+EXPOSE 6379
