@@ -13,7 +13,7 @@ RUN \
 
 # update
   && apt-get update && apt-get upgrade -y --no-install-recommends --no-install-suggests \
-  && apt-get install -y --no-install-recommends --no-install-suggests redis-server \
+  && apt-get install -y --no-install-recommends --no-install-suggests nano redis-server \
   && update-rc.d -f redis-server disable \
 
   && echo "\n\n* soft nofile 200000\n* hard nofile 200000\n" >> /etc/security/limits.conf \
@@ -33,6 +33,7 @@ RUN \
   && chmod +x /etc/service/redis/run \
 
   && apt-get autoremove -y gcc make libc6-dev && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+  && echo "\nvm.overcommit_memory = 1\nnet.core.somaxconn = 65535\nkernel/mm/transparent_hugepage/enabled = never\kernel/mm/transparent_hugepage/defrag = never\n" >> /etc/sysctl.conf \
 
   && echo "/sbin/shutdown -h 5 'System will reboot in 5 minutes'" > /etc/cron.monthly/reboot-me \
   && chmod +x /etc/cron.monthly/reboot-me
