@@ -22,7 +22,7 @@ RUN \
       -e 's:^bind:# bind:g' \
       -e 's:^logfile:# logfile:' \
       -e 's:daemonize yes:daemonize no:' \
-      -e 's:# maxmemory \(.*\)$:maxmemory 2gb:' \
+      -e 's:# maxmemory \(.*\)$:maxmemory 1gb:' \
       -e 's:# maxmemory-policy \(.*\)$:maxmemory-policy allkeys-lru:' \
       /etc/redis/redis.conf \
 
