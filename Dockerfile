@@ -16,12 +16,14 @@ RUN \
   && apt-get install -y --no-install-recommends --no-install-suggests redis-server \
   && update-rc.d -f redis-server disable \
 
-  && echo "\n\n* soft nofile 100000\n* hard nofile 100000\n" >> /etc/security/limits.conf \
+  && echo "\n\n* soft nofile 200000\n* hard nofile 200000\n" >> /etc/security/limits.conf \
 
-  && sed -i 's/^\(bind .*\)$/# \1/' /etc/redis/redis.conf \
-  && sed -i 's/^\(daemonize .*\)$/# \1/' /etc/redis/redis.conf \
-  && sed -i 's/^\(maxmemory-policy .*\)$/# \1\\nmaxmemory-policy allkeys-lru/' /etc/redis/redis.conf \
-  && sed -i 's/^\(maxmemory .*\)$/# \1\\nmaxmemory 3gb/' /etc/redis/redis.conf \
+  && sed -i -e 's:^save:# save:g' \
+      -e 's:^bind:# bind:g' \
+      -e 's:daemonize yes:daemonize no:' \
+      -e 's:# maxmemory \(.*\)$:maxmemory 2gb:' \
+      -e 's:# maxmemory-policy \(.*\)$:maxmemory-policy allkeys-lru:' \
+      /etc/redis/redis.conf
 
   && mkdir -p /var/lib/redis && mkdir -p /var/log/redis && mkdir -p /etc/service/redis \
   && echo "#!/bin/sh" > /etc/service/redis/run \
@@ -29,9 +31,12 @@ RUN \
   && echo "exec /sbin/setuser redis /usr/bin/redis-server /etc/redis/redis.conf" >> /etc/service/redis/run \
   && chmod +x /etc/service/redis/run \
 
+  && rm -f /var/log/redis/redis-server.log \
+  && ln -sf /dev/stdout /var/log/redis/redis-server.log \
+
   && apt-get autoremove -y gcc make libc6-dev && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
 
-  && echo "/sbin/shutdown -h 5 'System will reboot in 5 minutes'" > /etc/cron.daily/reboot-me \
-  && chmod +x /etc/cron.daily/reboot-me
+  && echo "/sbin/shutdown -h 5 'System will reboot in 5 minutes'" > /etc/cron.monthly/reboot-me \
+  && chmod +x /etc/cron.monthly/reboot-me
 
 EXPOSE 6379
