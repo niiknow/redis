@@ -20,6 +20,7 @@ RUN \
 
   && sed -i -e 's:^save:# save:g' \
       -e 's:^bind:# bind:g' \
+      -e 's:^logfile:# logfile:' \
       -e 's:daemonize yes:daemonize no:' \
       -e 's:# maxmemory \(.*\)$:maxmemory 2gb:' \
       -e 's:# maxmemory-policy \(.*\)$:maxmemory-policy allkeys-lru:' \
@@ -30,9 +31,6 @@ RUN \
   && echo "set -e" >> /etc/service/redis/run \
   && echo "exec /sbin/setuser redis /usr/bin/redis-server /etc/redis/redis.conf" >> /etc/service/redis/run \
   && chmod +x /etc/service/redis/run \
-
-  && rm -f /var/log/redis/redis-server.log \
-  && ln -sf /dev/stdout /var/log/redis/redis-server.log \
 
   && apt-get autoremove -y gcc make libc6-dev && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
 
